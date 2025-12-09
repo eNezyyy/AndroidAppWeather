@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/repositories/note_repository.dart';
+import '../data/repositories/weather_repository.dart';
+import '../data/services/local_storage_service.dart';
+import '../data/services/weather_api_service.dart';
 import '../models/note.dart';
 import '../theme/app_theme.dart';
+import '../viewmodels/home_view_model.dart';
 import 'home_screen.dart';
 import 'note_detail_screen.dart';
 import 'note_editor_screen.dart';
@@ -16,43 +23,66 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
-  final List<Note> _notes = [
-    Note(
-      title: 'Список покупок',
-      content: 'Молоко\nХлеб\nЯйца\nЯгоды',
-      date: '08.12.2025',
-    ),
-    Note(
-      title: 'Идея для проекта',
-      content: 'Приложение с заметками и погодой.',
-      date: '07.12.2025',
-    ),
-  ];
+  bool _ready = false;
+  late HomeViewModel _viewModel;
 
-  void _addNote(Note note) {
-    setState(() {
-      _notes.insert(0, note);
-      _currentIndex = 0; // возвращаемся на главную после добавления
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Заметка "${note.title}" добавлена'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  static const _apiKey = 'YOUR_API_KEY'; // замените на свой ключ OpenWeatherMap
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
   }
 
-  Future<void> _openEditor() async {
-    final createdNote = await Navigator.of(context).push<Note>(
+  Future<void> _init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storage = LocalStorageService(prefs);
+    final noteRepository = NoteRepository(storage);
+    final weatherRepository =
+        WeatherRepository(WeatherApiService(apiKey: _apiKey));
+
+    _viewModel = HomeViewModel(
+      noteRepository: noteRepository,
+      weatherRepository: weatherRepository,
+      defaultCity: 'Saint Petersburg',
+    );
+    _viewModel.addListener(_onVmChanged);
+    await _viewModel.init();
+    if (mounted) {
+      setState(() => _ready = true);
+    }
+  }
+
+  void _onVmChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  void _openEditor() {
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => NoteEditorScreen(
-          onSave: (note) => Navigator.of(context).pop(note),
+          onSave: (title, content) async {
+            Navigator.of(context).pop();
+            await _viewModel.addNote(title, content);
+            if (mounted) {
+              setState(() => _currentIndex = 0);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Заметка "$title" добавлена'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          },
         ),
       ),
     );
-    if (createdNote != null) {
-      _addNote(createdNote);
-    }
   }
 
   void _openDetails(Note note) {
@@ -69,11 +99,21 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_ready) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final pages = [
       HomeScreen(
-        notes: _notes,
+        notes: _viewModel.notes,
+        weather: _viewModel.weather,
+        loadingWeather: _viewModel.loadingWeather,
+        weatherError: _viewModel.weatherError,
         onCreateNote: _openEditor,
         onOpenNote: _openDetails,
+        onRefreshWeather: _viewModel.loadWeather,
       ),
       SettingsScreen(
         onCreateNote: _openEditor,
@@ -103,5 +143,4 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 }
-
 

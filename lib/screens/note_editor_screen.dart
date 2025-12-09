@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../models/note.dart';
 import '../theme/app_theme.dart';
 
 class NoteEditorScreen extends StatefulWidget {
   const NoteEditorScreen({super.key, required this.onSave});
 
-  final ValueChanged<Note> onSave;
+  final void Function(String title, String content) onSave;
 
   @override
   State<NoteEditorScreen> createState() => _NoteEditorScreenState();
@@ -23,11 +22,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     super.dispose();
   }
 
-  String _formatDate(DateTime date) {
-    final twoDigits = (int n) => n.toString().padLeft(2, '0');
-    return '${twoDigits(date.day)}.${twoDigits(date.month)}.${date.year}';
-  }
-
   void _handleSave() {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
@@ -42,12 +36,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       return;
     }
 
-    final note = Note(
-      title: title,
-      content: content,
-      date: _formatDate(DateTime.now()),
-    );
-    widget.onSave(note);
+    widget.onSave(title, content);
   }
 
   @override

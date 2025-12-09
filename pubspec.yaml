@@ -1,5 +1,5 @@
-name: weather_notes_lr4
-description: Static UI mock for Weather Notes (lr4).
+name: weather_notes_lr6
+description: Weather Notes with local storage and weather API (lr6).
 publish_to: "none"
 
 version: 0.0.1+1
@@ -10,6 +10,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  http: ^1.1.0
+  shared_preferences: ^2.2.3
+  http: ^1.1.0
+  provider: ^6.0.5
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
 
 import '../models/note.dart';
+import '../models/weather_info.dart';
 import '../theme/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
     required this.notes,
+    required this.weather,
+    required this.loadingWeather,
+    required this.weatherError,
     required this.onCreateNote,
     required this.onOpenNote,
+    required this.onRefreshWeather,
   });
 
   final List<Note> notes;
+  final WeatherInfo weather;
+  final bool loadingWeather;
+  final String? weatherError;
   final VoidCallback onCreateNote;
   final ValueChanged<Note> onOpenNote;
+  final Future<void> Function() onRefreshWeather;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +60,12 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _WeatherCard(),
+              _WeatherCard(
+                weather: weather,
+                loading: loadingWeather,
+                error: weatherError,
+                onRefresh: onRefreshWeather,
+              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -94,6 +108,18 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _WeatherCard extends StatelessWidget {
+  const _WeatherCard({
+    required this.weather,
+    required this.loading,
+    required this.error,
+    required this.onRefresh,
+  });
+
+  final WeatherInfo weather;
+  final bool loading;
+  final String? error;
+  final Future<void> Function() onRefresh;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -116,34 +142,70 @@ class _WeatherCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'Санкт-Петербург',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            '+22°C, Облачно',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 12),
+        children: [
           Row(
             children: [
-              Icon(Icons.wb_sunny_outlined, color: Colors.white, size: 28),
-              SizedBox(width: 8),
-              Text(
-                'Ощущается как +21°C',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+              Expanded(
+                child: Text(
+                  weather.city,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: loading ? null : onRefresh,
+                color: Colors.white,
+                icon: loading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.refresh),
               ),
             ],
           ),
+          const SizedBox(height: 4),
+          if (error != null)
+            Text(
+              error!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${weather.temperature.toStringAsFixed(0)}°C, ${weather.description}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.wb_sunny_outlined,
+                        color: Colors.white, size: 28),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Ощущается как ${weather.feelsLike.toStringAsFixed(0)}°C',
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ],
+            ),
         ],
       ),
     );
