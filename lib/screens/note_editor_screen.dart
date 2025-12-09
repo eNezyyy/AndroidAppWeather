@@ -5,7 +5,7 @@ import '../theme/app_theme.dart';
 class NoteEditorScreen extends StatefulWidget {
   const NoteEditorScreen({super.key, required this.onSave});
 
-  final void Function(String title, String content) onSave;
+  final Future<void> Function(String title, String content) onSave;
 
   @override
   State<NoteEditorScreen> createState() => _NoteEditorScreenState();
@@ -22,7 +22,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     super.dispose();
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
@@ -36,7 +36,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       return;
     }
 
-    widget.onSave(title, content);
+    await widget.onSave(title, content);
   }
 
   @override
@@ -100,7 +100,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppTheme.text.withOpacity(0.2)),
+                        side: BorderSide(color: AppTheme.text.withValues(alpha: 0.2)),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

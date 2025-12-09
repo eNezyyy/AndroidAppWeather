@@ -7,8 +7,22 @@ class NoteRepository {
   final LocalStorageService _storage;
 
   Future<List<Note>> loadNotes() async {
-    final items = _storage.readNotes();
-    return items.map(Note.fromMap).toList();
+    try {
+      final items = _storage.readNotes();
+      return items
+          .map((item) {
+            try {
+              return Note.fromMap(item);
+            } catch (_) {
+              return null;
+            }
+          })
+          .whereType<Note>()
+          .where((note) => note.id.isNotEmpty && note.title.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<void> saveNotes(List<Note> notes) async {
@@ -16,5 +30,4 @@ class NoteRepository {
     await _storage.saveNotes(mapped);
   }
 }
-
 

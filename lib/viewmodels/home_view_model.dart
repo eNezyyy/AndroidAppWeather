@@ -41,17 +41,25 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> loadNotes() async {
-    _loadingNotes = true;
-    notifyListeners();
-    final loaded = await _noteRepository.loadNotes();
-    _notes
-      ..clear()
-      ..addAll(loaded.isNotEmpty ? loaded : _seedNotes());
-    if (loaded.isEmpty) {
-      await _noteRepository.saveNotes(_notes);
+    try {
+      _loadingNotes = true;
+      notifyListeners();
+      final loaded = await _noteRepository.loadNotes();
+      _notes
+        ..clear()
+        ..addAll(loaded.isNotEmpty ? loaded : _seedNotes());
+      if (loaded.isEmpty) {
+        await _noteRepository.saveNotes(_notes);
+      }
+    } catch (e) {
+      // Если загрузка не удалась, используем seed notes
+      _notes
+        ..clear()
+        ..addAll(_seedNotes());
+    } finally {
+      _loadingNotes = false;
+      notifyListeners();
     }
-    _loadingNotes = false;
-    notifyListeners();
   }
 
   Future<void> addNote(String title, String content) async {

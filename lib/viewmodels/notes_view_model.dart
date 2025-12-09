@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
-import '../data/note_repository.dart';
+import '../data/repositories/note_repository.dart';
 import '../models/note.dart';
 
 class NotesViewModel extends ChangeNotifier {
@@ -74,5 +74,4 @@ class NotesViewModel extends ChangeNotifier {
         ),
       ];
 }
-
 

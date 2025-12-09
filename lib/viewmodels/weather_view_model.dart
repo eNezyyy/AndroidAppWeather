@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart';
 
-import '../data/weather_service.dart';
-import '../models/weather.dart';
+import '../data/repositories/weather_repository.dart';
+import '../models/weather_info.dart';
 
 class WeatherViewModel extends ChangeNotifier {
-  WeatherViewModel({required WeatherService service}) : _service = service;
+  WeatherViewModel({required WeatherRepository repository}) : _repository = repository;
 
-  final WeatherService _service;
+  final WeatherRepository _repository;
 
-  Weather? _weather;
+  WeatherInfo? _weather;
   bool _isLoading = false;
   String? _error;
 
-  Weather? get weather => _weather;
+  WeatherInfo? get weather => _weather;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -21,7 +21,7 @@ class WeatherViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      _weather = await _service.fetchCurrentByCity(city);
+      _weather = await _repository.loadWeather(city: city);
     } catch (e) {
       _error = 'Ошибка загрузки погоды: $e';
     } finally {
@@ -30,5 +30,4 @@ class WeatherViewModel extends ChangeNotifier {
     }
   }
 }
-
 

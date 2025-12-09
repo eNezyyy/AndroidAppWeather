@@ -13,7 +13,7 @@ class AppTheme {
       seedColor: primary,
       primary: primary,
       secondary: accent,
-      background: background,
+      surface: background,
       error: error,
     ),
     scaffoldBackgroundColor: background,
@@ -23,7 +23,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: false,
     ),
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       color: card,
       elevation: 2,
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -44,14 +44,14 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
-      hintStyle: TextStyle(color: text.withOpacity(0.6)),
+      hintStyle: TextStyle(color: text.withValues(alpha: 0.6)),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.transparent),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: primary.withOpacity(0.2)),
+        borderSide: BorderSide(color: primary.withValues(alpha: 0.2)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

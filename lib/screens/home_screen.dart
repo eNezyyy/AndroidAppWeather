@@ -80,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   Text(
                     '${notes.length} всего',
-                    style: TextStyle(color: AppTheme.text.withOpacity(0.6)),
+                    style: TextStyle(color: AppTheme.text.withValues(alpha: 0.6)),
                   ),
                 ],
               ),
@@ -134,7 +134,7 @@ class _WeatherCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.2),
+            color: AppTheme.primary.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 8),
           ),
@@ -258,19 +258,19 @@ class _NoteCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: AppTheme.text.withOpacity(0.7),
+                  color: AppTheme.text.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 16, color: AppTheme.primary),
+                  const Icon(Icons.calendar_today, size: 16, color: AppTheme.primary),
                   const SizedBox(width: 6),
                   Text(
                     date,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppTheme.text.withOpacity(0.6),
+                      color: AppTheme.text.withValues(alpha: 0.6),
                     ),
                   ),
                 ],

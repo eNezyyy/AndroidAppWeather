@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,7 +25,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   bool _ready = false;
-  late HomeViewModel _viewModel;
+  HomeViewModel? _viewModel;
 
   static const _apiKey = 'YOUR_API_KEY'; // замените на свой ключ OpenWeatherMap
 
@@ -35,21 +36,32 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   Future<void> _init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storage = LocalStorageService(prefs);
-    final noteRepository = NoteRepository(storage);
-    final weatherRepository =
-        WeatherRepository(WeatherApiService(apiKey: _apiKey));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storage = LocalStorageService(prefs);
+      final noteRepository = NoteRepository(storage);
+      final weatherRepository =
+          WeatherRepository(WeatherApiService(apiKey: _apiKey));
 
-    _viewModel = HomeViewModel(
-      noteRepository: noteRepository,
-      weatherRepository: weatherRepository,
-      defaultCity: 'Saint Petersburg',
-    );
-    _viewModel.addListener(_onVmChanged);
-    await _viewModel.init();
-    if (mounted) {
-      setState(() => _ready = true);
+      _viewModel = HomeViewModel(
+        noteRepository: noteRepository,
+        weatherRepository: weatherRepository,
+        defaultCity: 'Saint Petersburg',
+      );
+      _viewModel!.addListener(_onVmChanged);
+      
+      // Инициализируем асинхронно, но не ждем завершения
+      _viewModel!.init().catchError((error) {
+        debugPrint('Error initializing view model: $error');
+      });
+    } catch (e) {
+      debugPrint('Error in _init: $e');
+      // Если инициализация не удалась, _viewModel останется null
+    } finally {
+      // Всегда показываем UI, даже если инициализация не удалась
+      if (mounted) {
+        setState(() => _ready = true);
+      }
     }
   }
 
@@ -59,17 +71,19 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    _viewModel?.removeListener(_onVmChanged);
+    _viewModel?.dispose();
     super.dispose();
   }
 
   void _openEditor() {
+    if (_viewModel == null) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => NoteEditorScreen(
           onSave: (title, content) async {
             Navigator.of(context).pop();
-            await _viewModel.addNote(title, content);
+            await _viewModel!.addNote(title, content);
             if (mounted) {
               setState(() => _currentIndex = 0);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -105,15 +119,23 @@ class _MainNavigationState extends State<MainNavigation> {
       );
     }
 
+    if (_viewModel == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('Ошибка инициализации приложения'),
+        ),
+      );
+    }
+
     final pages = [
       HomeScreen(
-        notes: _viewModel.notes,
-        weather: _viewModel.weather,
-        loadingWeather: _viewModel.loadingWeather,
-        weatherError: _viewModel.weatherError,
+        notes: _viewModel!.notes,
+        weather: _viewModel!.weather,
+        loadingWeather: _viewModel!.loadingWeather,
+        weatherError: _viewModel!.weatherError,
         onCreateNote: _openEditor,
         onOpenNote: _openDetails,
-        onRefreshWeather: _viewModel.loadWeather,
+        onRefreshWeather: _viewModel!.loadWeather,
       ),
       SettingsScreen(
         onCreateNote: _openEditor,
@@ -125,7 +147,7 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: AppTheme.primary,
-        unselectedItemColor: AppTheme.text.withOpacity(0.6),
+        unselectedItemColor: AppTheme.text.withValues(alpha: 0.6),
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
           BottomNavigationBarItem(

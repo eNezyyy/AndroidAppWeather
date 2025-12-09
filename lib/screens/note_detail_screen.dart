@@ -43,12 +43,12 @@ class NoteDetailScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 16, color: AppTheme.primary),
+                  const Icon(Icons.calendar_today, size: 16, color: AppTheme.primary),
                   const SizedBox(width: 6),
                   Text(
                     date,
                     style: TextStyle(
-                      color: AppTheme.text.withOpacity(0.6),
+                      color: AppTheme.text.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
